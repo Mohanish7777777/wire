@@ -1,25 +1,26 @@
-# Dockerfile for WireGuard VPN
+FROM ubuntu:latest
 
-# Use a lightweight base image
-FROM debian:latest
+# Install dependencies and Docker
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    ca-certificates \
+    git \
+    sudo
 
-# Install dependencies
-RUN apt update && apt install -y wireguard iptables netcat-openbsd iproute2 && rm -rf /var/lib/apt/lists/*
+# Install Docker
+RUN curl -fsSL https://get.docker.com | sh
 
-# Enable IP forwarding
-RUN echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf && \
-    echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf
+# Install and run Nginx Proxy
+RUN docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock -t jwilder/nginx-proxy
 
-# Create WireGuard directory
-RUN mkdir -p /etc/wireguard
+# Clone dPanel and setup
+WORKDIR /opt
+RUN git clone https://github.com/paimpozhil/dPanel.git
+WORKDIR /opt/dPanel/stdcontainers
+RUN chmod a+x *.sh
 
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Expose necessary ports (modify as needed)
+EXPOSE 80 443
 
-# Expose WireGuard port
-EXPOSE 51820/udp
-EXPOSE 8000/tcp
-
-# Start WireGuard and print a message on port 8000
-CMD ["/entrypoint.sh"]
+CMD ["bash"]
