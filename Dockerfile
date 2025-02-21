@@ -4,7 +4,7 @@
 FROM debian:latest
 
 # Install dependencies
-RUN apt update && apt install -y wireguard iptables netcat-openbsd && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y wireguard iptables netcat-openbsd iproute2 && rm -rf /var/lib/apt/lists/*
 
 # Enable IP forwarding
 RUN echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf && \
